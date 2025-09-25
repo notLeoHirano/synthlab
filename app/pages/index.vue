@@ -1,6 +1,6 @@
 <script setup lang="ts">
 definePageMeta({ ssr: false });
-import Synth from "~/components/Synth.vue";
+import Synth from "~/components/Synthesizer.vue";
 
 import { onMounted } from "vue";
 import * as Tone from "tone";
@@ -21,7 +21,6 @@ function playNote(note: string) {
   <div
     class="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center"
   >
-    <h1 class="text-2xl mb-6">Synth Playground</h1>
-    <Synth />
+    <Synthesizer />
   </div>
 </template>

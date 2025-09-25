@@ -2,7 +2,6 @@
 import * as Tone from "tone";
 
 const props = defineProps<{
-  synth: Tone.Synth | null;
   activeNotes: Set<string>;
   octaves?: number;
   startOctave?: number;
@@ -13,7 +12,6 @@ const emit = defineEmits<{
   (e: "noteOff", note: string): void;
 }>();
 
-// Defaults
 const OCTAVES = props.octaves ?? 2;
 const START_OCTAVE = props.startOctave ?? 4;
 
@@ -22,7 +20,6 @@ const WHITE_KEY_HEIGHT = 160;
 const BLACK_KEY_WIDTH = 24;
 const BLACK_KEY_HEIGHT = 100;
 
-// Template for one octave
 const octaveTemplate = [
   { note: "C", type: "white" },
   { note: "C#", type: "black", position: 0.7 },
@@ -38,7 +35,6 @@ const octaveTemplate = [
   { note: "B", type: "white" },
 ];
 
-// Generate all keys
 const pianoKeys = Array.from({ length: OCTAVES }, (_, o) => {
   const octaveNumber = START_OCTAVE + o;
   return octaveTemplate.map((k) => ({
@@ -51,19 +47,73 @@ const pianoKeys = Array.from({ length: OCTAVES }, (_, o) => {
 const whiteKeys = pianoKeys.filter((k) => k.type === "white");
 const blackKeys = pianoKeys.filter((k) => k.type === "black");
 
-// Play handlers
-const startNote = async (note: string) => {
-  if (props.activeNotes.has(note)) return;
-  await Tone.start();
-  props.synth?.triggerAttack(note);
-  emit("noteOn", note);
+const startNote = async (note: string) => emit("noteOn", note);
+const endNote = (note: string) => emit("noteOff", note);
+
+// ===== Keyboard mapping =====
+// These are the “rows” we’ll use for white keys
+const whiteKeyRows = [
+  "zxcvbnm,./", // row 1 (lower)
+  "qwertyuiop[]", // row 2 (upper)
+];
+const blackKeyRows = [
+  "sdghjl;", // row 1 (lower)
+  "234567890-", // row 2 (upper)
+];
+
+// Flatten white keys & black keys for mapping
+const whiteKeyNotes = whiteKeys.map((k) => k.note);
+const blackKeyNotes = blackKeys.map((k) => k.note);
+
+const keyMap: Record<string, string> = {};
+
+// Map white keys
+let wIndex = 0;
+for (const row of whiteKeyRows) {
+  for (const char of row) {
+    if (wIndex >= whiteKeyNotes.length) break;
+    keyMap[char] = whiteKeyNotes[wIndex];
+    wIndex++;
+  }
+}
+
+// Map black keys
+let bIndex = 0;
+for (const row of blackKeyRows) {
+  for (const char of row) {
+    if (bIndex >= blackKeyNotes.length) break;
+    keyMap[char] = blackKeyNotes[bIndex];
+    bIndex++;
+  }
+}
+
+const activeKeys = new Set<string>();
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  const note = keyMap[e.key];
+  if (note && !activeKeys.has(note)) {
+    activeKeys.add(note);
+    startNote(note);
+  }
 };
 
-const endNote = (note: string) => {
-  if (!props.activeNotes.has(note)) return;
-  props.synth?.triggerRelease(note);
-  emit("noteOff", note);
+const handleKeyUp = (e: KeyboardEvent) => {
+  const note = keyMap[e.key];
+  if (note) {
+    activeKeys.delete(note);
+    endNote(note);
+  }
 };
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+});
 </script>
 
 <template>
