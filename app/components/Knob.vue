@@ -15,7 +15,7 @@ const emit = defineEmits(["update:modelValue"]);
 
 const min = props.min ?? 0;
 const max = props.max ?? 100;
-const step = props.step ?? 1;
+const step = props.step ?? props.unit === "%" ? 0.01 : 1;
 const color = props.color ?? "#10b981"; // Default to emerald-500
 
 const isDragging = ref(false);
@@ -147,7 +147,10 @@ onBeforeUnmount(() => {
         {{ label }}
       </div>
       <div class="text-sm text-white">
-        {{ modelValue.toFixed(unit === "%" || unit === "Hz" ? 0 : 1)
+        {{
+          (props.unit == "%" ? modelValue * 100 : modelValue).toFixed(
+            unit === "%" || unit === "Hz" ? 0 : 1
+          )
         }}{{ unit }}
       </div>
     </div>

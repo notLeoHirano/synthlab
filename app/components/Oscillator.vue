@@ -32,7 +32,7 @@ const filterProps = ref({
   enabled: false,
   type: "lowpass" as BiquadFilterType,
   freq: 2000,
-  Q: 1,
+  Q: 0,
 });
 const distortionProps = ref({ enabled: false, amount: 0.4 });
 const bitCrusherProps = ref({ enabled: false, bits: 8 });
@@ -72,23 +72,7 @@ const waveTypes = [
   },
 ];
 
-const initializeAudioChain = () => {
-  // Clean up all existing nodes before rebuilding
-  [
-    synth,
-    filter,
-    distortion,
-    bitCrusher,
-    delay,
-    chorus,
-    phaser,
-    reverb,
-    compressor,
-    panner,
-    gainNode,
-    meter,
-  ].forEach((node) => node?.dispose());
-
+const createAudioNodes = () => {
   // Create synth and final output nodes
   synth = new Tone.PolySynth(Tone.Synth, {
     oscillator: { type: oscillatorType.value },
@@ -122,34 +106,53 @@ const initializeAudioChain = () => {
     compressorProps.value.ratio
   );
 
-  const chain: Tone.ToneAudioNode[] = [
-    synth,
-    filterProps.value.enabled && filter,
-    distortionProps.value.enabled && distortion,
-    bitCrusherProps.value.enabled && bitCrusher,
-    delayProps.value.enabled && delay,
-    chorusProps.value.enabled && chorus,
-    phaserProps.value.enabled && phaser,
-    reverbProps.value.enabled && reverb,
-    compressorProps.value.enabled && compressor,
-    panner,
-    gainNode,
-  ].filter(Boolean) as Tone.ToneAudioNode[];
-
-  Tone.connectSeries(...chain);
-
-  gainNode.connect(meter);
-  gainNode.toDestination();
-
+  // Set initial wet values
   if (delay) delay.wet.value = delayProps.value.wet;
   if (chorus) chorus.wet.value = chorusProps.value.wet;
   if (phaser) phaser.wet.value = phaserProps.value.wet;
   if (reverb) reverb.wet.value = reverbProps.value.wet;
 };
 
+const updateAudioChain = () => {
+  if (!synth || !panner || !gainNode) return;
+
+  // Disconnect everything first
+  synth.disconnect();
+  [filter, distortion, bitCrusher, delay, chorus, phaser, reverb, compressor]
+    .filter(Boolean)
+    .forEach((node) => node?.disconnect());
+
+  panner.disconnect();
+  gainNode.disconnect();
+
+  // Build the active effects chain
+  const activeEffects = [];
+  if (filterProps.value.enabled && filter) activeEffects.push(filter);
+  if (distortionProps.value.enabled && distortion)
+    activeEffects.push(distortion);
+  if (bitCrusherProps.value.enabled && bitCrusher)
+    activeEffects.push(bitCrusher);
+  if (delayProps.value.enabled && delay) activeEffects.push(delay);
+  if (chorusProps.value.enabled && chorus) activeEffects.push(chorus);
+  if (phaserProps.value.enabled && phaser) activeEffects.push(phaser);
+  if (reverbProps.value.enabled && reverb) activeEffects.push(reverb);
+  if (compressorProps.value.enabled && compressor)
+    activeEffects.push(compressor);
+
+  // Connect the chain
+  const chain = [synth, ...activeEffects, panner, gainNode];
+  Tone.connectSeries(...chain);
+
+  // Connect to meter and destination
+  gainNode.connect(meter!);
+  gainNode.toDestination();
+};
+
 //  Lifecycle
 onMounted(() => {
-  initializeAudioChain();
+  createAudioNodes();
+  updateAudioChain();
+
   setInterval(() => {
     const val = meter?.getValue() as number;
     normalized.value = val === -Infinity ? 0 : Tone.dbToGain(val);
@@ -173,7 +176,7 @@ onBeforeUnmount(() => {
   ].forEach((node) => node?.dispose());
 });
 
-// Watch for any effect being enabled/disabled
+// Watch for any effect being enabled/disabled - only update chain, don't recreate nodes
 watch(
   () => [
     filterProps.value.enabled,
@@ -185,7 +188,7 @@ watch(
     reverbProps.value.enabled,
     compressorProps.value.enabled,
   ],
-  () => initializeAudioChain()
+  () => updateAudioChain()
 );
 
 // Watch for oscillator envelope, gain, pan changes

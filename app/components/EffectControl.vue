@@ -85,6 +85,11 @@ const filterFreqLog = computed({
       class="flex flex-col items-center p-4 bg-black/20 rounded-lg border border-gray-700 space-y-4 min-h-[260px]"
     >
       <template v-if="i === 1">
+        <PowerButton
+          :model-value="props.filter.enabled"
+          @update:model-value="updateFilter('enabled', $event)"
+          >Filter</PowerButton
+        >
         <Filter
           :modelValue="props.filter"
           @update:modelValue="$emit('update:filter', $event)"
