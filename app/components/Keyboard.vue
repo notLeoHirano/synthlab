@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import * as Tone from "tone";
+import { onBeforeUnmount, onMounted } from "vue";
 
 const props = defineProps<{
   activeNotes: Set<string>;
@@ -50,18 +51,15 @@ const blackKeys = pianoKeys.filter((k) => k.type === "black");
 const startNote = async (note: string) => emit("noteOn", note);
 const endNote = (note: string) => emit("noteOff", note);
 
-// ===== Keyboard mapping =====
-// These are the “rows” we’ll use for white keys
 const whiteKeyRows = [
   "zxcvbnm,./", // row 1 (lower)
   "qwertyuiop[]", // row 2 (upper)
 ];
 const blackKeyRows = [
   "sdghjl;", // row 1 (lower)
-  "234567890-", // row 2 (upper)
+  "2346790-", // row 2 (upper)
 ];
 
-// Flatten white keys & black keys for mapping
 const whiteKeyNotes = whiteKeys.map((k) => k.note);
 const blackKeyNotes = blackKeys.map((k) => k.note);
 
@@ -161,9 +159,7 @@ onBeforeUnmount(() => {
         @mouseleave="endNote(key.note)"
         @touchstart.prevent="startNote(key.note)"
         @touchend.prevent="endNote(key.note)"
-      >
-        {{ key.note.replace("#", "♯") }}
-      </button>
+      ></button>
     </div>
   </div>
 </template>
