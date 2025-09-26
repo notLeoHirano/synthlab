@@ -20,7 +20,7 @@ const noteOff = (note: string) => {
 };
 
 // Tailwind md breakpoint = 768px
-const isMobile = ref(window.innerWidth < 768);
+const isMobile = ref(window ? window.innerWidth < 768 : true);
 
 const updateBreakpoint = () => {
   isMobile.value = window.matchMedia("(max-width: 767px)").matches;
