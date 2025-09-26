@@ -58,17 +58,29 @@ let reverb: Tone.Reverb | null = null;
 let compressor: Tone.Compressor | null = null;
 
 const waveTypes = [
-  { type: "sine", name: "Sine", path: "M0,25 Q25,0 50,25 Q75,50 100,25" },
+  {
+    type: "sine",
+    name: "SINE",
+    path: "M0,25 Q25,0 50,25 Q75,50 100,25",
+    description: "Pure tone, smooth for soft sounds.",
+  },
   {
     type: "square",
-    name: "Square",
+    name: "SQUARE",
     path: "M0,25 L0,0 L50,0 L50,50 L100,50 L100,25",
+    description: "Hollow, buzzy tone, used for leads.",
   },
-  { type: "sawtooth", name: "Saw", path: "M0,25 L50,0 L50,50 L100,25" },
+  {
+    type: "sawtooth",
+    name: "SAW",
+    path: "M0,25 L50,0 L50,50 L100,25",
+    description: "Contains all harmonics, for bright synths or pads.",
+  },
   {
     type: "triangle",
-    name: "Triangle",
+    name: "TRIANGLE",
     path: "M0,25 L25,50 L50,25 L75,0 L100,25",
+    description: "Mellow, softer version of a square wave.",
   },
 ];
 
@@ -297,7 +309,7 @@ defineExpose({ noteOn, noteOff });
 
 <template>
   <div
-    class="bg-gray-900 text-white rounded-lg w-full mx-auto select-none overflow-auto scrollbar-hide"
+    class="bg-gray-900 text-white rounded-sm w-full mx-auto select-none overflow-auto scrollbar-hide"
     style="min-width: 300px"
   >
     <div
@@ -308,20 +320,20 @@ defineExpose({ noteOn, noteOff });
           v-for="tab in ['oscillator', 'effects', 'modulation']"
           :key="tab"
           @click="activeTab = tab"
+          class="px-2 py-1 text-sm rounded-t-md font-semibold border-2 capitalize transition-all flex-shrink-0"
           :class="[
             activeTab === tab
               ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500'
-              : 'bg-gray-800 text-gray-400 border-transparent hover:text-white',
-            'px-2 py-1 text-sm rounded-t-lg border-b-2 capitalize transition-all flex-shrink-0',
+              : 'bg-gray-800 text-gray-400 border-gray-900 hover:text-white',
           ]"
         >
-          {{ tab }}
+          {{ tab.toUpperCase() }}
         </button>
       </div>
 
       <div class="sm:ml-auto flex w-full sm:w-auto justify-end">
         <div
-          class="bg-gray-800 px-2 p-0 rounded-lg flex items-center space-x-4 w-full sm:w-auto"
+          class="bg-gray-800 px-2 p-0 rounded-md border-2 border-gray-900 flex items-center space-x-4 w-full sm:w-auto"
         >
           <div class="flex items-center">
             <span class="text-xs text-gray-400 w-full text-right">
@@ -360,29 +372,51 @@ defineExpose({ noteOn, noteOff });
       class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
     >
       <div>
-        <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
+        <div
+          class="grid p-1 grid-cols-2 sm:grid-cols-2 gap-2 m-1 sm:gap-4 mb-6"
+        >
           <button
             v-for="wave in waveTypes"
             :key="wave.type"
             @click="oscillatorType = wave.type"
             :class="[
+              'group border-2 relative m-1 overflow-hidden rounded-lg transition-all duration-200 hover:scale-[1.02] flex items-center justify-center min-h-20 sm:min-h-24',
               oscillatorType === wave.type
-                ? 'border-emerald-500 bg-emerald-500/20'
-                : 'border-gray-600 bg-gray-800 hover:border-gray-500',
-              'p-3 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]',
+                ? 'border-2 border-emerald-500 bg-emerald-500/20'
+                : 'border-2 border-gray-600 bg-gray-800 hover:border-gray-500',
             ]"
           >
-            <svg viewBox="0 0 100 50" class="p-1 w-full h-8 sm:h-12">
-              <path
-                :d="wave.path"
-                fill="none"
-                :stroke="oscillatorType === wave.type ? '#10b981' : '#9ca3af'"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span class="text-xs mt-1 block">{{ wave.name }}</span>
+            <!-- Sliding wrapper -->
+            <div class="flex w-full h-full">
+              <div
+                class="flex flex-col items-center justify-center flex-shrink-0 w-full transition-transform duration-300 ease-in-out translate-x-0 group-hover:-translate-x-full"
+              >
+                <svg viewBox="0 0 100 50" class="w-3/4 h-8 sm:h-12">
+                  <path
+                    :d="wave.path"
+                    fill="none"
+                    :stroke="
+                      oscillatorType === wave.type ? '#10b981' : '#9ca3af'
+                    "
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+
+              <!-- Hover state -->
+              <div
+                class="flex-col items-center justify-center flex-shrink-0 w-full text-center px-2 transition-transform duration-300 ease-in-out flex translate-x-0 group-hover:-translate-x-full"
+              >
+                <span class="font-semibold text-emerald-400">{{
+                  wave.name
+                }}</span>
+                <span class="text-xs text-gray-400 mt-1">{{
+                  wave.description
+                }}</span>
+              </div>
+            </div>
           </button>
         </div>
 
