@@ -20,19 +20,25 @@ const noteOff = (note: string) => {
 };
 
 // Tailwind md breakpoint = 768px
-const isMobile = ref(window ? window.innerWidth < 768 : true);
+const isMobile = ref(false);
 
 const updateBreakpoint = () => {
-  isMobile.value = window.matchMedia("(max-width: 767px)").matches;
+  if (typeof window !== "undefined") {
+    isMobile.value = window.innerWidth < 768;
+  }
 };
 
 onMounted(() => {
   updateBreakpoint();
-  window.addEventListener("resize", updateBreakpoint);
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", updateBreakpoint);
+  }
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateBreakpoint);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", updateBreakpoint);
+  }
 });
 
 // Keyboard props based on breakpoint
@@ -44,8 +50,8 @@ const responsiveStartOctave = computed(() => (isMobile.value ? 4 : 3));
   <div class="h-screen w-full flex flex-col bg-gray-900">
     <!-- Oscillators container -->
     <div class="flex-1 w-full h-full flex relative overflow-hidden">
-      <!-- Desktop: 2-column flex -->
-      <div class="hidden md:flex md:gap-4 md:m-4 md:w-full">
+      <!-- Desktop Layout -->
+      <div v-if="!isMobile" class="flex gap-4 m-4 w-full">
         <div class="flex-1 overflow-hidden">
           <Oscillator
             ref="osc1"
@@ -62,9 +68,10 @@ const responsiveStartOctave = computed(() => (isMobile.value ? 4 : 3));
         </div>
       </div>
 
-      <!-- Mobile: 1 oscillator at a time with pagination -->
+      <!-- Mobile Layout - Always render both, but in swipe container -->
       <div
-        class="flex md:hidden h-full w-full overflow-x-auto snap-x snap-mandatory"
+        v-if="isMobile"
+        class="h-full w-full overflow-x-auto snap-x snap-mandatory flex"
       >
         <div class="flex-shrink-0 w-full h-full snap-center overflow-hidden">
           <Oscillator
