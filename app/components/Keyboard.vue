@@ -38,12 +38,16 @@ const octaveTemplate = [
   { note: "B", type: "white" },
 ];
 
+const totalWhiteKeys = OCTAVES * 7;
+const whiteKeyWidthPercent = 100 / totalWhiteKeys; // width in %
+
 const pianoKeys = Array.from({ length: OCTAVES }, (_, o) => {
   const octaveNumber = START_OCTAVE + o;
-  return octaveTemplate.map((k) => ({
+  return octaveTemplate.map((k, i) => ({
     ...k,
     note: `${k.note}${octaveNumber}`,
-    position: k.position != null ? k.position + o * 7 : undefined,
+    // calculate position as index in white keys (for black keys)
+    position: k.type === "black" ? o * 7 + (k.position ?? i) : undefined,
   }));
 }).flat();
 
@@ -133,9 +137,12 @@ onBeforeUnmount(() => {
         <button
           v-for="key in whiteKeys"
           :key="key.note"
-          class="relative group bg-white border w-1/28 border-gray-400 rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-100"
+          class="relative group bg-white border border-gray-400 rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-100"
           :class="props.activeNotes.has(key.note) ? 'bg-gray-300 scale-95' : ''"
-          :style="{ height: WHITE_KEY_HEIGHT + 'px' }"
+          :style="{
+            width: whiteKeyWidthPercent + '%',
+            height: WHITE_KEY_HEIGHT + 'px',
+          }"
           @mousedown="startNote(key.note)"
           @mouseup="endNote(key.note)"
           @mouseleave="endNote(key.note)"
@@ -158,33 +165,13 @@ onBeforeUnmount(() => {
           :key="key.note"
           :style="{
             position: 'absolute',
-            left: `calc(${((key.position ?? 0) / whiteKeys.length) * 100}% )`,
-            width: `calc(100% / 42)`,
-            height: BLACK_KEY_HEIGHT + 'px',
-            pointerEvents: 'auto', // allow clicks
-          }"
-          :class="[
-            'bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow',
-            props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : '',
-          ]"
-          @mousedown="startNote(key.note)"
-          @mouseup="endNote(key.note)"
-          @mouseleave="endNote(key.note)"
-          @touchstart.prevent="startNote(key.note)"
-          @touchend.prevent="endNote(key.note)"
-        ></button
-        ><button
-          v-for="key in blackKeys"
-          :key="key.note"
-          class="relative group bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow"
-          :class="props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : ''"
-          :style="{
-            position: 'absolute',
-            left: `calc(${((key.position ?? 0) / whiteKeys.length) * 100}%)`,
-            width: `calc(100% / 42)`,
+            left: `calc(${((key.position ?? 0) / totalWhiteKeys) * 100}% )`,
+            width: `calc(${whiteKeyWidthPercent * 0.7}%)`, // black keys narrower
             height: BLACK_KEY_HEIGHT + 'px',
             pointerEvents: 'auto',
           }"
+          class="bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow"
+          :class="props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : ''"
           @mousedown="startNote(key.note)"
           @mouseup="endNote(key.note)"
           @mouseleave="endNote(key.note)"

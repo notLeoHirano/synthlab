@@ -65,14 +65,6 @@ const updateCompressor = <K extends keyof CompressorProps>(
   field: K,
   value: CompressorProps[K]
 ) => emit("update:compressor", { ...props.compressor, [field]: value });
-
-const filterTypes = ["lowpass", "highpass", "bandpass", "notch"] as const;
-
-// Use a logarithmic scale for the filter frequency knob for more intuitive control
-const filterFreqLog = computed({
-  get: () => Math.log10(props.filter.freq),
-  set: (val) => updateFilter("freq", Math.pow(10, val)),
-});
 </script>
 
 <template>
@@ -155,7 +147,7 @@ const filterFreqLog = computed({
           <PowerButton
             :model-value="props.distortion.enabled"
             @update:model-value="updateDistortion('enabled', $event)"
-            >Distortion</PowerButton
+            >Distort</PowerButton
           >
           <div
             class="flex-grow flex items-center mt-5 justify-center"
@@ -179,7 +171,7 @@ const filterFreqLog = computed({
           <PowerButton
             :model-value="props.bitCrusher.enabled"
             @update:model-value="updateBitCrusher('enabled', $event)"
-            >Bit Crush</PowerButton
+            >Crush</PowerButton
           >
           <div
             class="flex-grow flex mt-5 items-center justify-center"

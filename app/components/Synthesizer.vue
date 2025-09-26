@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted, onUnmounted, computed } from "vue";
 import Keyboard from "./Keyboard.vue";
 import Oscillator from "./Oscillator.vue";
 
@@ -18,37 +18,80 @@ const noteOff = (note: string) => {
   osc1.value?.noteOff(note);
   osc2.value?.noteOff(note);
 };
+
+// Tailwind md breakpoint = 768px
+const isMobile = ref(window.innerWidth < 768);
+
+const updateBreakpoint = () => {
+  isMobile.value = window.matchMedia("(max-width: 767px)").matches;
+};
+
+onMounted(() => {
+  updateBreakpoint();
+  window.addEventListener("resize", updateBreakpoint);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", updateBreakpoint);
+});
+
+// Keyboard props based on breakpoint
+const responsiveOctaves = computed(() => (isMobile.value ? 2 : 4));
+const responsiveStartOctave = computed(() => (isMobile.value ? 4 : 3));
 </script>
+
 <template>
   <div class="h-screen w-full flex flex-col bg-gray-900">
-    <!-- Oscillators container (takes remaining space) -->
-    <div class="flex-1 w-full flex flex-row gap-4 p-4 overflow-hidden">
-      <div class="flex-[1_1_0] w-full h-full overflow-hidden">
-        <Oscillator
-          ref="osc1"
-          :activeNotes="activeNotes"
-          class="w-full h-full"
-        />
+    <!-- Oscillators container -->
+    <div class="flex-1 w-full h-full flex relative overflow-hidden">
+      <!-- Desktop: 2-column flex -->
+      <div class="hidden md:flex md:gap-4 md:m-4 md:w-full">
+        <div class="flex-1 overflow-hidden">
+          <Oscillator
+            ref="osc1"
+            :activeNotes="activeNotes"
+            class="w-full h-full"
+          />
+        </div>
+        <div class="flex-1 overflow-hidden">
+          <Oscillator
+            ref="osc2"
+            :activeNotes="activeNotes"
+            class="w-full h-full"
+          />
+        </div>
       </div>
 
-      <div class="flex-[1_1_0] w-full overflow-hidden">
-        <Oscillator
-          ref="osc2"
-          :activeNotes="activeNotes"
-          class="w-full h-full"
-        />
+      <!-- Mobile: 1 oscillator at a time with pagination -->
+      <div
+        class="flex md:hidden h-full w-full overflow-x-auto snap-x snap-mandatory"
+      >
+        <div class="flex-shrink-0 w-full h-full snap-center overflow-hidden">
+          <Oscillator
+            ref="osc1"
+            :activeNotes="activeNotes"
+            class="w-full h-full"
+          />
+        </div>
+        <div class="flex-shrink-0 w-full h-full snap-center overflow-hidden">
+          <Oscillator
+            ref="osc2"
+            :activeNotes="activeNotes"
+            class="w-full h-full"
+          />
+        </div>
       </div>
     </div>
 
-    <!-- Keyboard fixed at bottom of flex -->
+    <!-- Keyboard fixed at bottom -->
     <div
       class="flex-shrink-0 flex items-center justify-center mx-4 pb-4 bg-gray-900"
     >
       <div class="w-full max-w-6xl">
         <Keyboard
           :activeNotes="activeNotes"
-          :octaves="4"
-          :startOctave="3"
+          :octaves="responsiveOctaves"
+          :startOctave="responsiveStartOctave"
           @noteOn="noteOn"
           @noteOff="noteOff"
           class="w-full"

@@ -297,13 +297,13 @@ defineExpose({ noteOn, noteOff });
 
 <template>
   <div
-    class="bg-gray-900 text-white rounded-lg w-full mx-auto select-none"
+    class="bg-gray-900 text-white rounded-lg w-full mx-auto select-none overflow-auto scrollbar-hide"
     style="min-width: 300px"
   >
     <div
-      class="flex flex-col sm:flex-row sm:space-x-2 mb-6 border-b border-gray-700"
+      class="flex flex-col sm:flex-row sticky top-0 z-20 bg-gray-900 sm:space-x-2 mb-6 border-b border-gray-700"
     >
-      <div class="flex space-x-2 mb-4 sm:mb-0">
+      <div class="flex mb-4 sm:mb-0">
         <button
           v-for="tab in ['oscillator', 'effects', 'modulation']"
           :key="tab"
@@ -406,7 +406,7 @@ defineExpose({ noteOn, noteOff });
       <div><EnvelopeControl :envelope="envelope" /></div>
     </div>
 
-    <div v-show="activeTab === 'effects'" class="h-full">
+    <div v-show="activeTab === 'effects'">
       <EffectControl
         v-model:filter="filterProps"
         v-model:distortion="distortionProps"
