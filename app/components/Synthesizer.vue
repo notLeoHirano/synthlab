@@ -19,15 +19,41 @@ const noteOff = (note: string) => {
   osc2.value?.noteOff(note);
 };
 </script>
-
 <template>
-  <Oscillator ref="osc1" :activeNotes="activeNotes" />
-  <Oscillator ref="osc2" :activeNotes="activeNotes" />
-  <Keyboard
-    :activeNotes="activeNotes"
-    :octaves="4"
-    :startOctave="3"
-    @noteOn="noteOn"
-    @noteOff="noteOff"
-  />
+  <div class="h-screen w-full flex flex-col bg-gray-900">
+    <!-- Oscillators container (takes remaining space) -->
+    <div class="flex-1 w-full flex flex-row gap-4 p-4 overflow-hidden">
+      <div class="flex-[1_1_0] w-full h-full overflow-hidden">
+        <Oscillator
+          ref="osc1"
+          :activeNotes="activeNotes"
+          class="w-full h-full"
+        />
+      </div>
+
+      <div class="flex-[1_1_0] w-full overflow-hidden">
+        <Oscillator
+          ref="osc2"
+          :activeNotes="activeNotes"
+          class="w-full h-full"
+        />
+      </div>
+    </div>
+
+    <!-- Keyboard fixed at bottom of flex -->
+    <div
+      class="flex-shrink-0 flex items-center justify-center mx-4 pb-4 bg-gray-900"
+    >
+      <div class="w-full max-w-6xl">
+        <Keyboard
+          :activeNotes="activeNotes"
+          :octaves="4"
+          :startOctave="3"
+          @noteOn="noteOn"
+          @noteOff="noteOff"
+          class="w-full"
+        />
+      </div>
+    </div>
+  </div>
 </template>

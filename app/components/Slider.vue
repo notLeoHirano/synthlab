@@ -63,7 +63,7 @@ const rotation = computed(() => {
 
 <template>
   <div
-    class="flex flex-col items-center select-none"
+    class="flex flex-col items-center select-none w-12"
     :class="disabled ? 'opacity-50 pointer-events-none' : ''"
   >
     <label
@@ -72,26 +72,8 @@ const rotation = computed(() => {
       >{{ label }}</label
     >
 
-    <svg
-      width="72"
-      height="72"
-      viewBox="0 0 72 72"
-      @mousedown="onMouseDown"
-      class="cursor-ns-resize"
-    >
+    <svg viewBox="0 0 72 72" @mousedown="onMouseDown" class="cursor-ns-resize">
       <defs>
-        <!-- Gradient for the knob face to give it depth -->
-        <radialGradient
-          id="knobFace"
-          cx="0.5"
-          cy="0.5"
-          r="0.5"
-          fx="0.3"
-          fy="0.3"
-        >
-          <stop offset="0%" stop-color="#4a5568" />
-          <stop offset="100%" stop-color="#1a202c" />
-        </radialGradient>
         <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
           <feDropShadow
             dx="0"
@@ -117,9 +99,9 @@ const rotation = computed(() => {
         cx="36"
         cy="36"
         r="24"
-        fill="none"
+        fill="#333"
         stroke="#1a202c"
-        stroke-width="1"
+        stroke-width="4"
       />
 
       <!-- Pointer line, rotated using transform for accuracy -->

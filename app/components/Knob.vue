@@ -15,7 +15,7 @@ const emit = defineEmits(["update:modelValue"]);
 
 const min = props.min ?? 0;
 const max = props.max ?? 100;
-const step = props.step ?? props.unit === "%" ? 0.01 : 1;
+const step = props.step ?? props.unit === "%" ? 0.01 : 0.1;
 const color = props.color ?? "#10b981"; // Default to emerald-500
 
 const isDragging = ref(false);
@@ -103,14 +103,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="flex flex-col items-center justify-center text-center select-none w-24"
+    class="flex flex-col items-center justify-center text-center select-none w-12"
   >
     <div
-      class="relative w-20 h-20 cursor-ns-resize"
+      class="relative w-full aspect-square cursor-ns-resize"
       @mousedown="handleMouseDown"
     >
-      <svg viewBox="0 0 100 100">
-        <!-- Track -->
+      <svg viewBox="0 0 100 100" class="w-full h-full">
         <circle
           cx="50"
           cy="50"
@@ -119,7 +118,6 @@ onBeforeUnmount(() => {
           stroke="#374151"
           stroke-width="8"
         />
-        <!-- Value Arc -->
         <path
           :d="arcPath"
           fill="none"
@@ -127,9 +125,7 @@ onBeforeUnmount(() => {
           stroke-width="8"
           stroke-linecap="round"
         />
-        <!-- Knob body -->
         <circle cx="50" cy="50" r="38" fill="#1f2937" />
-        <!-- Indicator -->
         <line
           x1="50"
           y1="50"

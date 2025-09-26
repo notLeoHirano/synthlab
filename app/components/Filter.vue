@@ -28,7 +28,7 @@ const mouseMoveHandler = ref<((e: MouseEvent) => void) | null>(null);
 const mouseUpHandler = ref<(() => void) | null>(null);
 const filterPathD = computed(() => {
   const f = props.modelValue.freq;
-  const Q = props.modelValue.Q;
+  const Q = (props.modelValue.Q + 30) / 2;
 
   const xStart = 0;
   const xCutoff = freqToX(f);
@@ -36,7 +36,7 @@ const filterPathD = computed(() => {
   const xEnd = svgWidth;
 
   const yStart = svgHeight * 0.5;
-  const bumpHeight = Math.max(0.2, 1 - Q / 30);
+  const bumpHeight = Math.max(0, 1 - Q / 30);
   const yCutoff = svgHeight * bumpHeight;
   const yAfter = svgHeight;
   const yEnd = svgHeight;
@@ -248,21 +248,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="bg-gray-800 p-4 rounded-lg flex flex-col space-y-3">
-    <div class="flex items-center justify-between">
-      <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400">
-        Filter
-      </h3>
-    </div>
+  <div class="bg-gray-800 p-4 rounded-lg flex flex-row space-y-3 gap-3 w-full">
     <div
       :class="!modelValue.enabled ? 'opacity-50 pointer-events-none' : ''"
-      class="transition-opacity"
+      class="transition-opacity mb-0"
     >
       <svg
         ref="svgElement"
-        :width="svgWidth"
-        :height="svgHeight"
-        class="bg-gray-900 rounded-md cursor-crosshair"
+        :viewBox="`0 0 ${svgWidth} ${svgHeight}`"
+        class="w-full h-auto bg-gray-900 rounded-md cursor-crosshair"
         @mousedown.prevent="handleMouseDown"
       >
         <!-- Grid lines -->
@@ -313,20 +307,23 @@ onBeforeUnmount(() => {
           stroke-dasharray="2 2"
         />
       </svg>
-
-      <!-- Controls -->
-      <div class="flex justify-around items-center mt-3">
-        <select
-          :value="modelValue.type"
-          @change="handleTypeChange"
-          class="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm mr-4"
-        >
-          <option value="lowpass">Low Pass</option>
-          <option value="highpass">High Pass</option>
-          <option value="bandpass">Band Pass</option>
-          <option value="notch">Notch</option>
-        </select>
-
+      <select
+        :value="modelValue.type"
+        @change="handleTypeChange"
+        class="w-full bg-gray-700 text-white mt-4 rounded px-2 py-1 text-sm"
+      >
+        <option value="lowpass">Low Pass</option>
+        <option value="highpass">High Pass</option>
+        <option value="bandpass">Band Pass</option>
+        <option value="notch">Notch</option>
+      </select>
+    </div>
+    <!-- Controls -->
+    <div
+      class="flex-col justify-around items-center gap-3"
+      :class="!modelValue.enabled ? 'opacity-50 pointer-events-none' : ''"
+    >
+      <div class="grid grid-cols-1 gap-4">
         <Knob
           :modelValue="modelValue.freq"
           @update:modelValue="onValueChange('freq', $event)"

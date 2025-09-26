@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
+import { computed } from "vue";
+import Knob from "./Knob.vue";
+import PowerButton from "./PowerButton.vue";
 
 type Modulation = {
   enabled: boolean;
@@ -18,136 +20,113 @@ const emit = defineEmits<{
   (e: "update:phaser", value: Modulation): void;
 }>();
 
-type ModulationField = keyof Modulation;
+// Helper functions for updating each modulation effect's state
+const updateChorus = <K extends keyof Modulation>(
+  field: K,
+  value: Modulation[K]
+) => emit("update:chorus", { ...props.chorus, [field]: value });
 
-function onChorusChange(field: ModulationField, e: Event) {
-  const target = e.target as HTMLInputElement;
-  const value = field === "enabled" ? target.checked : +target.value;
-  emit("update:chorus", { ...props.chorus, [field]: value });
-}
-
-function onPhaserChange(field: ModulationField, e: Event) {
-  const target = e.target as HTMLInputElement;
-  const value = field === "enabled" ? target.checked : +target.value;
-  emit("update:phaser", { ...props.phaser, [field]: value });
-}
+const updatePhaser = <K extends keyof Modulation>(
+  field: K,
+  value: Modulation[K]
+) => emit("update:phaser", { ...props.phaser, [field]: value });
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-4">
+  <div
+    class="grid grid-cols-1 md:grid-cols-2 gap-4 p-2 bg-gray-900/50 rounded-lg border border-gray-700"
+  >
     <!-- Chorus -->
-    <div class="bg-gray-800 p-4 rounded-lg">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-medium">Chorus</h3>
-        <input
-          type="checkbox"
-          :checked="props.chorus.enabled"
-          @change="onChorusChange('enabled', $event)"
-          class="accent-green-500"
-        />
-      </div>
-      <div
-        :class="!props.chorus.enabled ? 'opacity-50 pointer-events-none' : ''"
+    <div
+      class="flex flex-col items-center p-2 bg-black/20 rounded-lg border border-gray-700 space-y-4 min-h-[120px]"
+    >
+      <PowerButton
+        :model-value="props.chorus.enabled"
+        @update:model-value="updateChorus('enabled', $event)"
       >
-        <label class="text-xs">Frequency</label>
-        <input
-          type="range"
-          min="0.1"
-          max="10"
-          step="0.1"
-          :value="props.chorus.freq"
-          @input="onChorusChange('freq', $event)"
-          class="w-full accent-green-500"
-        />
-        <span class="text-xs text-gray-400"
-          >{{ props.chorus.freq.toFixed(1) }} Hz</span
-        >
+        Chorus
+      </PowerButton>
 
-        <label class="text-xs block mt-2">Depth</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="props.chorus.depth"
-          @input="onChorusChange('depth', $event)"
-          class="w-full accent-green-500"
+      <div
+        class="flex flex-col items-center space-y-4"
+        :class="{ 'opacity-40 pointer-events-none': !props.chorus.enabled }"
+      >
+        <div class="flex items-start justify-center gap-4">
+          <Knob
+            label="Freq"
+            :model-value="props.chorus.freq"
+            @update:model-value="updateChorus('freq', $event)"
+            :min="0.1"
+            :max="10"
+            :step="0.1"
+            unit="Hz"
+          />
+          <Knob
+            label="Depth"
+            :model-value="props.chorus.depth"
+            @update:model-value="updateChorus('depth', $event)"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            unit="%"
+          />
+        </div>
+        <Knob
+          label="Mix"
+          :model-value="props.chorus.wet"
+          @update:model-value="updateChorus('wet', $event)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          unit="%"
         />
-        <span class="text-xs text-gray-400"
-          >{{ (props.chorus.depth * 100).toFixed(0) }}%</span
-        >
-
-        <label class="text-xs block mt-2">Mix</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="props.chorus.wet"
-          @input="onChorusChange('wet', $event)"
-          class="w-full accent-green-500"
-        />
-        <span class="text-xs text-gray-400"
-          >{{ (props.chorus.wet * 100).toFixed(0) }}%</span
-        >
       </div>
     </div>
 
     <!-- Phaser -->
-    <div class="bg-gray-800 p-4 rounded-lg">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-medium">Phaser</h3>
-        <input
-          type="checkbox"
-          :checked="props.phaser.enabled"
-          @change="onPhaserChange('enabled', $event)"
-          class="accent-purple-500"
-        />
-      </div>
-      <div
-        :class="!props.phaser.enabled ? 'opacity-50 pointer-events-none' : ''"
+    <div
+      class="flex flex-col items-center p-2 bg-black/20 rounded-lg border border-gray-700 space-y-4 min-h-[120px]"
+    >
+      <PowerButton
+        :model-value="props.phaser.enabled"
+        @update:model-value="updatePhaser('enabled', $event)"
       >
-        <label class="text-xs">Frequency</label>
-        <input
-          type="range"
-          min="0.1"
-          max="10"
-          step="0.1"
-          :value="props.phaser.freq"
-          @input="onPhaserChange('freq', $event)"
-          class="w-full accent-purple-500"
-        />
-        <span class="text-xs text-gray-400"
-          >{{ props.phaser.freq.toFixed(1) }} Hz</span
-        >
+        Phaser
+      </PowerButton>
 
-        <label class="text-xs block mt-2">Depth</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="props.phaser.depth"
-          @input="onPhaserChange('depth', $event)"
-          class="w-full accent-purple-500"
+      <div
+        class="flex flex-col items-center space-y-4"
+        :class="{ 'opacity-40 pointer-events-none': !props.phaser.enabled }"
+      >
+        <div class="flex items-start justify-center gap-4">
+          <Knob
+            label="Freq"
+            :model-value="props.phaser.freq"
+            @update:model-value="updatePhaser('freq', $event)"
+            :min="0.1"
+            :max="10"
+            :step="0.1"
+            unit="Hz"
+          />
+          <Knob
+            label="Depth"
+            :model-value="props.phaser.depth"
+            @update:model-value="updatePhaser('depth', $event)"
+            :min="0"
+            :max="1"
+            :step="0.01"
+            unit="%"
+          />
+        </div>
+        <Knob
+          label="Mix"
+          :model-value="props.phaser.wet"
+          @update:model-value="updatePhaser('wet', $event)"
+          :min="0"
+          :max="1"
+          :step="0.01"
+          unit="%"
         />
-        <span class="text-xs text-gray-400"
-          >{{ (props.phaser.depth * 100).toFixed(0) }}%</span
-        >
-
-        <label class="text-xs block mt-2">Mix</label>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          :value="props.phaser.wet"
-          @input="onPhaserChange('wet', $event)"
-          class="w-full accent-purple-500"
-        />
-        <span class="text-xs text-gray-400"
-          >{{ (props.phaser.wet * 100).toFixed(0) }}%</span
-        >
       </div>
     </div>
   </div>

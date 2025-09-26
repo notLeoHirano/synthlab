@@ -297,31 +297,39 @@ defineExpose({ noteOn, noteOff });
 
 <template>
   <div
-    class="p-6 bg-gray-900 text-white rounded-lg w-full max-w-6xl mx-auto select-none"
+    class="bg-gray-900 text-white rounded-lg w-full mx-auto select-none"
+    style="min-width: 300px"
   >
-    <div class="flex space-x-2 mb-6 border-b border-gray-700">
-      <button
-        v-for="tab in ['oscillator', 'effects', 'modulation']"
-        :key="tab"
-        @click="activeTab = tab"
-        :class="[
-          activeTab === tab
-            ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500'
-            : 'bg-gray-800 text-gray-400 border-transparent hover:text-white',
-          'px-4 py-2 rounded-t-lg border-b-2 capitalize transition-all',
-        ]"
-      >
-        {{ tab }}
-      </button>
-      <div class="ml-auto flex flex-col items-end">
-        <div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4">
+    <div
+      class="flex flex-col sm:flex-row sm:space-x-2 mb-6 border-b border-gray-700"
+    >
+      <div class="flex space-x-2 mb-4 sm:mb-0">
+        <button
+          v-for="tab in ['oscillator', 'effects', 'modulation']"
+          :key="tab"
+          @click="activeTab = tab"
+          :class="[
+            activeTab === tab
+              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500'
+              : 'bg-gray-800 text-gray-400 border-transparent hover:text-white',
+            'px-2 py-1 text-sm rounded-t-lg border-b-2 capitalize transition-all flex-shrink-0',
+          ]"
+        >
+          {{ tab }}
+        </button>
+      </div>
+
+      <div class="sm:ml-auto flex w-full sm:w-auto justify-end">
+        <div
+          class="bg-gray-800 px-2 p-0 rounded-lg flex items-center space-x-4 w-full sm:w-auto"
+        >
           <div class="flex items-center">
-            <span class="text-sm text-gray-400 w-full text-right">
+            <span class="text-xs text-gray-400 w-full text-right">
               {{ Tone.gainToDb(gainValue).toFixed(1) }} dB
             </span>
           </div>
           <div
-            class="relative bg-gray-700 rounded overflow-hidden items-center w-32 h-6"
+            class="relative bg-gray-700 rounded overflow-hidden items-center w-24 h-4 flex-shrink-0"
           >
             <div
               class="absolute top-0 left-0 h-full transition-all duration-50 z-10"
@@ -347,9 +355,12 @@ defineExpose({ noteOn, noteOff });
       </div>
     </div>
 
-    <div v-show="activeTab === 'oscillator'" class="grid grid-cols-2 gap-6">
+    <div
+      v-show="activeTab === 'oscillator'"
+      class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
+    >
       <div>
-        <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-2 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
           <button
             v-for="wave in waveTypes"
             :key="wave.type"
@@ -358,10 +369,10 @@ defineExpose({ noteOn, noteOff });
               oscillatorType === wave.type
                 ? 'border-emerald-500 bg-emerald-500/20'
                 : 'border-gray-600 bg-gray-800 hover:border-gray-500',
-              'p-3 rounded-lg border-2 transition-all duration-200 hover:scale-105',
+              'p-3 rounded-lg border-2 transition-all duration-200 hover:scale-[1.02]',
             ]"
           >
-            <svg viewBox="0 0 100 50" class="p-1 w-full h-3/4">
+            <svg viewBox="0 0 100 50" class="p-1 w-full h-8 sm:h-12">
               <path
                 :d="wave.path"
                 fill="none"
@@ -371,30 +382,31 @@ defineExpose({ noteOn, noteOff });
                 stroke-linejoin="round"
               />
             </svg>
-            <span class="text-xs">{{ wave.name }}</span>
+            <span class="text-xs mt-1 block">{{ wave.name }}</span>
           </button>
         </div>
+
         <div>
           <div class="bg-gray-800 p-4 rounded-lg">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs">L</span><span class="text-sm">Pan</span
-              ><span class="text-xs">R</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs">L</span
+              ><input
+                v-model.number="panValue"
+                type="range"
+                min="-1"
+                max="1"
+                step="0.01"
+                class="w-full m-2 accent-emerald-500"
+              /><span class="text-xs">R</span>
             </div>
-            <input
-              v-model.number="panValue"
-              type="range"
-              min="-1"
-              max="1"
-              step="0.01"
-              class="w-full accent-emerald-500"
-            />
           </div>
         </div>
       </div>
+
       <div><EnvelopeControl :envelope="envelope" /></div>
     </div>
 
-    <div v-show="activeTab === 'effects'">
+    <div v-show="activeTab === 'effects'" class="h-full">
       <EffectControl
         v-model:filter="filterProps"
         v-model:distortion="distortionProps"

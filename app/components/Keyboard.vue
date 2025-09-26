@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as Tone from "tone";
-import { onBeforeUnmount, onMounted } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const props = defineProps<{
   activeNotes: Set<string>;
@@ -12,6 +12,8 @@ const emit = defineEmits<{
   (e: "noteOn", note: string): void;
   (e: "noteOff", note: string): void;
 }>();
+
+const showPiano = ref(true);
 
 const OCTAVES = props.octaves ?? 2;
 const START_OCTAVE = props.startOctave ?? 4;
@@ -102,7 +104,10 @@ const handleKeyUp = (e: KeyboardEvent) => {
     endNote(note);
   }
 };
-
+const noteToKey: Record<string, string> = {};
+for (const [char, note] of Object.entries(keyMap)) {
+  noteToKey[note] = char.toUpperCase(); // show uppercase for clarity
+}
 onMounted(() => {
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
@@ -115,51 +120,85 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="relative inline-block">
-    <!-- White Keys -->
-    <div class="flex">
-      <button
-        v-for="key in whiteKeys"
-        :key="key.note"
-        :style="{
-          width: WHITE_KEY_WIDTH + 'px',
-          height: WHITE_KEY_HEIGHT + 'px',
-        }"
-        :class="[
-          'bg-white border border-gray-400 rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-100',
-          props.activeNotes.has(key.note) ? 'bg-gray-300 scale-95' : '',
-        ]"
-        @mousedown="startNote(key.note)"
-        @mouseup="endNote(key.note)"
-        @mouseleave="endNote(key.note)"
-        @touchstart.prevent="startNote(key.note)"
-        @touchend.prevent="endNote(key.note)"
-      >
-        {{ key.note.replace("#", "♯") }}
-      </button>
-    </div>
+  <div class="relative inline-block justify-center">
+    <button
+      class="mb-2 px-3 py-1 rounded bg-emerald-500 text-xs font-mono hover:bg-gray-300"
+      @click="showPiano = !showPiano"
+    >
+      {{ showPiano ? "Hide" : "Show" }}
+    </button>
+    <div v-if="showPiano" class="w-full relative inline-block justify-center">
+      <!-- White Keys -->
+      <div class="">
+        <button
+          v-for="key in whiteKeys"
+          :key="key.note"
+          class="relative group bg-white border w-1/28 border-gray-400 rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-100"
+          :class="props.activeNotes.has(key.note) ? 'bg-gray-300 scale-95' : ''"
+          :style="{ height: WHITE_KEY_HEIGHT + 'px' }"
+          @mousedown="startNote(key.note)"
+          @mouseup="endNote(key.note)"
+          @mouseleave="endNote(key.note)"
+          @touchstart.prevent="startNote(key.note)"
+          @touchend.prevent="endNote(key.note)"
+        >
+          <span
+            v-if="noteToKey[key.note]"
+            class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {{ noteToKey[key.note] }}
+          </span>
+        </button>
+      </div>
 
-    <!-- Black Keys -->
-    <div class="absolute top-0 left-0 h-0">
-      <button
-        v-for="key in blackKeys"
-        :key="key.note"
-        :style="{
-          position: 'absolute',
-          left: (key.position ?? 0) * WHITE_KEY_WIDTH + 'px',
-          width: BLACK_KEY_WIDTH + 'px',
-          height: BLACK_KEY_HEIGHT + 'px',
-        }"
-        :class="[
-          'bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow',
-          props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : '',
-        ]"
-        @mousedown="startNote(key.note)"
-        @mouseup="endNote(key.note)"
-        @mouseleave="endNote(key.note)"
-        @touchstart.prevent="startNote(key.note)"
-        @touchend.prevent="endNote(key.note)"
-      ></button>
+      <!-- Black Keys -->
+      <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <button
+          v-for="key in blackKeys"
+          :key="key.note"
+          :style="{
+            position: 'absolute',
+            left: `calc(${((key.position ?? 0) / whiteKeys.length) * 100}% )`,
+            width: `calc(100% / 42)`,
+            height: BLACK_KEY_HEIGHT + 'px',
+            pointerEvents: 'auto', // allow clicks
+          }"
+          :class="[
+            'bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow',
+            props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : '',
+          ]"
+          @mousedown="startNote(key.note)"
+          @mouseup="endNote(key.note)"
+          @mouseleave="endNote(key.note)"
+          @touchstart.prevent="startNote(key.note)"
+          @touchend.prevent="endNote(key.note)"
+        ></button
+        ><button
+          v-for="key in blackKeys"
+          :key="key.note"
+          class="relative group bg-black text-white rounded-b font-mono text-xs font-bold transition-all duration-100 hover:bg-gray-800 shadow"
+          :class="props.activeNotes.has(key.note) ? 'bg-gray-700 scale-95' : ''"
+          :style="{
+            position: 'absolute',
+            left: `calc(${((key.position ?? 0) / whiteKeys.length) * 100}%)`,
+            width: `calc(100% / 42)`,
+            height: BLACK_KEY_HEIGHT + 'px',
+            pointerEvents: 'auto',
+          }"
+          @mousedown="startNote(key.note)"
+          @mouseup="endNote(key.note)"
+          @mouseleave="endNote(key.note)"
+          @touchstart.prevent="startNote(key.note)"
+          @touchend.prevent="endNote(key.note)"
+        >
+          <span
+            v-if="noteToKey[key.note]"
+            class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            {{ noteToKey[key.note] }}
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
