@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import Keyboard from "./Keyboard.vue";
 import Oscillator from "./Oscillator.vue";
+const { isMobile } = useDevice();
 
 const activeNotes = ref(new Set<string>());
 const osc1 = ref<any>(null);
@@ -19,31 +20,9 @@ const noteOff = (note: string) => {
   osc2.value?.noteOff(note);
 };
 
-// Tailwind md breakpoint = 768px
-const isMobile = ref(false);
-
-const updateBreakpoint = () => {
-  if (typeof window !== "undefined") {
-    isMobile.value = window.innerWidth < 768;
-  }
-};
-
-onMounted(() => {
-  updateBreakpoint();
-  if (typeof window !== "undefined") {
-    window.addEventListener("resize", updateBreakpoint);
-  }
-});
-
-onUnmounted(() => {
-  if (typeof window !== "undefined") {
-    window.removeEventListener("resize", updateBreakpoint);
-  }
-});
-
 // Keyboard props based on breakpoint
-const responsiveOctaves = computed(() => (isMobile.value ? 2 : 4));
-const responsiveStartOctave = computed(() => (isMobile.value ? 4 : 3));
+const responsiveOctaves = computed(() => (isMobile ? 2 : 4));
+const responsiveStartOctave = computed(() => (isMobile ? 4 : 3));
 </script>
 
 <template>
